@@ -1,11 +1,12 @@
 # encoding: utf-8
+import os
 import re
+
 import pandas as pd
 import xlwt
+from lxml import etree
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
-from lxml import etree
-import os
 
 
 def merge_excel_files(dir, merge_to):
@@ -78,16 +79,20 @@ def get_answer(user_id='sx1801001', password='123456', write_to='key.xls'):
     """
     ques_list = []
     ans_list = []
-    select_list = [63, 56, 52, 59, 64]
+
+    if user_id[:2].lower() == 'sx':
+        select_list = [63, 56, 52, 59, 64]
+    else:
+        select_list = [62, 56, 52, 53, 59, 58, 65]
+
     login_url = 'http://aqzsxx.nuaa.edu.cn/'
     driver = webdriver.Chrome('/usr/lib/chromium-browser/chromedriver')
 
     # login
     driver.get(login_url)
-    driver.find_element_by_id('txtUserName').send_keys(user_id)
-    driver.find_element_by_id('txtPassword').send_keys(password)
-    driver.find_element_by_id('btnLogin').click()
-
+    driver.find_element_by_id('LoginID').send_keys(user_id)
+    driver.find_element_by_id('UserPwd').send_keys(password)
+    driver.find_element_by_id('ButLogin').click()
     for x in select_list[::-1]:
         driver.get('http://aqzsxx.nuaa.edu.cn/PersonInfo/StartExercise_Mobile.aspx?Start=yes')
         select = Select(driver.find_element_by_name('drpSubject'))
@@ -110,7 +115,6 @@ def take_exam(user_id='sx1801001', password='123456', ans_file='key.xls',
     开始模拟或考试
     :param user_id: 学号
     :param password: 密码
-    :param start_exam: False -> 模拟，True -> 考试
     :param ans_file: get_answer() 中获取的答案文件
     :param exam_url: 模拟考试或者正式考试页面的链接
     """
@@ -143,12 +147,16 @@ def take_exam(user_id='sx1801001', password='123456', ans_file='key.xls',
                     driver.find_element_by_xpath('//tbody/tr/td/input[@value="' + ans_list[i] + '"]').click()
                 elif '多选题' in page_code:
                     if len(ans_list[i]) > 1:
-                        for j in range(len(ans_list[i])):
-                            driver.find_element_by_xpath('//tbody/tr/td/input[@value="' + ans_list[i][j] + '"]').click()
+                        try:
+                            for j in range(len(ans_list[i])):
+                                driver.find_element_by_xpath(
+                                    '//tbody/tr/td/input[@value="' + ans_list[i][j] + '"]').click()
+                        except:
+                            print("题库中没有找到该题答案，开启猜题模式！")
+
                 else:
                     if len(ans_list[i]) == 1:
                         driver.find_element_by_xpath('//*[@value="' + ans_list[i] + '"]').click()
-                    # '//*[@id="Answer71"]'
 
         if break_flag:
             break
@@ -165,7 +173,11 @@ def take_exam(user_id='sx1801001', password='123456', ans_file='key.xls',
 
 
 if __name__ == '__main__':
-    take_exam(user_id='sx1801001',  # 学号
+    # 爬取题库的答案
+    get_answer('sx1801001', '123456', write_to='my_key.xls')
+
+    # 模式考试
+    take_exam(user_id='sf180001',  # 学号
               password='123456',  # 密码
-              ans_file='key.xls',  # 答案文件
+              ans_file='my_key.xls',  # 答案文件
               exam_url='http://aqzsxx.nuaa.edu.cn/PersonInfo/StartExamOne.aspx?PaperID=69&UserID=28409&Start=yes')  # 模拟考试或正式考试页面的链接
