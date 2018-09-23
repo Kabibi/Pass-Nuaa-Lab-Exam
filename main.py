@@ -142,8 +142,6 @@ def take_exam(user_id='sx1801001', password='123456', ans_file='key.xls',
 
         # 搜索答案
         for i in range(len(ques_list)):
-            if '>53<' in page_code:
-                print("H")
             if ques_list[i] in question:
                 if '判断题' in page_code:
                     driver.find_element_by_xpath('//tbody/tr/td/input[@value="' + ans_list[i] + '"]').click()
