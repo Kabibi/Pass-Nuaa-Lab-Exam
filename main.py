@@ -142,21 +142,27 @@ def take_exam(user_id='sx1801001', password='123456', ans_file='key.xls',
 
         # 搜索答案
         for i in range(len(ques_list)):
+            if '>53<' in page_code:
+                print("H")
             if ques_list[i] in question:
                 if '判断题' in page_code:
                     driver.find_element_by_xpath('//tbody/tr/td/input[@value="' + ans_list[i] + '"]').click()
-                elif '多选题' in page_code:
+                    break
+
+                elif '单选题' in page_code:
+                    if len(ans_list[i]) == 1:
+                        driver.find_element_by_xpath('//*[@value="' + ans_list[i] + '"]').click()
+                        break
+
+                else:
                     if len(ans_list[i]) > 1:
                         try:
                             for j in range(len(ans_list[i])):
                                 driver.find_element_by_xpath(
                                     '//tbody/tr/td/input[@value="' + ans_list[i][j] + '"]').click()
+                            break
                         except:
                             print("题库中没有找到该题答案，开启猜题模式！")
-
-                else:
-                    if len(ans_list[i]) == 1:
-                        driver.find_element_by_xpath('//*[@value="' + ans_list[i] + '"]').click()
 
         if break_flag:
             break
@@ -174,10 +180,10 @@ def take_exam(user_id='sx1801001', password='123456', ans_file='key.xls',
 
 if __name__ == '__main__':
     # 爬取题库的答案
-    get_answer('sx1801001', '123456', write_to='my_key.xls')
+    # get_answer('sx1801001', '123456', write_to='key.xls')
 
     # 模式考试
-    take_exam(user_id='sf180001',  # 学号
+    take_exam(user_id='sx1801001',  # 学号
               password='123456',  # 密码
-              ans_file='my_key.xls',  # 答案文件
-              exam_url='http://aqzsxx.nuaa.edu.cn/PersonInfo/StartExamOne.aspx?PaperID=69&UserID=28409&Start=yes')  # 模拟考试或正式考试页面的链接
+              ans_file='key.xls',  # 答案文件
+              exam_url='http://aqzsxx.nuaa.edu.cn/PersonInfo/StartJobOne.aspx?PaperID=337&UserID=24740&Start=yes')
